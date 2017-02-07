@@ -1,11 +1,13 @@
 package com.example.android.pets;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,6 +20,8 @@ import com.example.android.pets.data.PetDbHelper;
  * Displays list of pets that were entered and stored in the app.
  */
 public class CatalogActivity extends AppCompatActivity {
+
+    PetDbHelper mDbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +38,10 @@ public class CatalogActivity extends AppCompatActivity {
             }
         });
 
+        // To access our database, we instantiate our subclass of SQLiteOpenHelper
+        // and pass the context, which is the current activity.
+        mDbHelper = new PetDbHelper(this);
+
         displayDatabaseInfo();
     }
 
@@ -42,9 +50,6 @@ public class CatalogActivity extends AppCompatActivity {
      * the pets database.
      */
     private void displayDatabaseInfo() {
-        // To access our database, we instantiate our subclass of SQLiteOpenHelper
-        // and pass the context, which is the current activity.
-        PetDbHelper mDbHelper = new PetDbHelper(this);
 
         // Create and/or open a database to read from it
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
@@ -64,6 +69,27 @@ public class CatalogActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Insert a dummy pet, "Toto" into the db
+     */
+    private void insertPet() {
+
+        // get the database in write mode
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+        // create a new map of values for the "dummy" pet
+        ContentValues petValues = new ContentValues();
+        petValues.put(PetEntry.COLUMN_PET_NAME, "Toto");
+        petValues.put(PetEntry.COLUMN_PET_BREED, "Terrier");
+        petValues.put(PetEntry.COLUMN_PET_GENDER, PetEntry.GENDER_MALE);
+        petValues.put(PetEntry.COLUMN_PET_WEIGHT, 7);
+
+        // insert the new row and store its row id
+        long newRowId = db.insert(PetEntry.TABLE_NAME, null, petValues);
+
+        Log.v("CatalogActivity", "New Row Created. ID: " + newRowId);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu options from the res/menu/menu_catalog.xml file.
@@ -78,7 +104,8 @@ public class CatalogActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_insert_dummy_data:
-                // Do nothing for now
+                insertPet();
+                displayDatabaseInfo();
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
