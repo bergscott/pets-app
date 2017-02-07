@@ -15,6 +15,8 @@
  */
 package com.example.android.pets;
 
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -26,13 +28,20 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.example.android.pets.data.PetContract;
 import com.example.android.pets.data.PetContract.PetEntry;
+import com.example.android.pets.data.PetDbHelper;
 
+import static com.example.android.pets.data.PetContract.PetEntry.COLUMN_PET_BREED;
+import static com.example.android.pets.data.PetContract.PetEntry.COLUMN_PET_GENDER;
+import static com.example.android.pets.data.PetContract.PetEntry.COLUMN_PET_NAME;
+import static com.example.android.pets.data.PetContract.PetEntry.COLUMN_PET_WEIGHT;
 import static com.example.android.pets.data.PetContract.PetEntry.GENDER_FEMALE;
 import static com.example.android.pets.data.PetContract.PetEntry.GENDER_MALE;
 import static com.example.android.pets.data.PetContract.PetEntry.GENDER_UNKNOWN;
+import static com.example.android.pets.data.PetContract.PetEntry.TABLE_NAME;
 
 /**
  * Allows user to create a new pet or edit an existing one.
@@ -110,6 +119,44 @@ public class EditorActivity extends AppCompatActivity {
         });
     }
 
+    private void insertPet() {
+        // get the pet info from the edit text fields
+        String nameString = mNameEditText.getText().toString().trim();
+        String breedString = mBreedEditText.getText().toString().trim();
+        String weightString = mWeightEditText.getText().toString().trim();
+        int weight;
+
+        // convert the weight from a String to int
+        try {
+            weight = Integer.parseInt(weightString);
+        } catch (NumberFormatException e) {
+            // if no int can be parsed from weight field, return early and make toast message
+            Toast.makeText(this, "Error with saving pet: Invalid Weight", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // create a map of values for the pet to be inserted into the db
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_PET_NAME, nameString);
+        values.put(COLUMN_PET_BREED, breedString);
+        values.put(COLUMN_PET_GENDER, mGender);
+        values.put(COLUMN_PET_WEIGHT, weight);
+
+        // get the db manager and retrieve the db
+        PetDbHelper dbHelper = new PetDbHelper(this);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        // insert the new pet row and store it's row id in a variable
+        long newRowId = db.insert(TABLE_NAME, null, values);
+
+        // make a toast message stating the new row id or if there was an error creating the row
+        if (newRowId == -1) {
+            Toast.makeText(this, "Error with saving pet", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Pet saved with id: " + newRowId, Toast.LENGTH_SHORT).show();
+        }
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu options from the res/menu/menu_editor.xml file.
@@ -124,7 +171,10 @@ public class EditorActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             // Respond to a click on the "Save" menu option
             case R.id.action_save:
-                // Do nothing for now
+                // save pet to database
+                insertPet();
+                // exit activity
+                finish();
                 return true;
             // Respond to a click on the "Delete" menu option
             case R.id.action_delete:
