@@ -15,8 +15,10 @@
  */
 package com.example.android.pets;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -131,7 +133,8 @@ public class EditorActivity extends AppCompatActivity {
             weight = Integer.parseInt(weightString);
         } catch (NumberFormatException e) {
             // if no int can be parsed from weight field, return early and make toast message
-            Toast.makeText(this, "Error with saving pet: Invalid Weight", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.insert_pet_error) + ": Invalid Weight",
+                    Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -142,18 +145,15 @@ public class EditorActivity extends AppCompatActivity {
         values.put(COLUMN_PET_GENDER, mGender);
         values.put(COLUMN_PET_WEIGHT, weight);
 
-        // get the db manager and retrieve the db
-        PetDbHelper dbHelper = new PetDbHelper(this);
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        // insert the new pet row and store it's new URI in a variable
+        Uri resultUri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
 
-        // insert the new pet row and store it's row id in a variable
-        long newRowId = db.insert(TABLE_NAME, null, values);
-
-        // make a toast message stating the new row id or if there was an error creating the row
-        if (newRowId == -1) {
-            Toast.makeText(this, "Error with saving pet", Toast.LENGTH_SHORT).show();
+        // check the resulting URI to see if the insert operation was a success and show a
+        // Toast message to the user
+        if (resultUri == null) {
+            Toast.makeText(this, getString(R.string.insert_pet_error), Toast.LENGTH_SHORT).show();
         } else {
-            Toast.makeText(this, "Pet saved with id: " + newRowId, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.insert_pet_success), Toast.LENGTH_SHORT).show();
         }
     }
 

@@ -14,6 +14,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.android.pets.data.PetContract;
 import com.example.android.pets.data.PetContract.PetEntry;
@@ -117,9 +118,6 @@ public class CatalogActivity extends AppCompatActivity {
      */
     private void insertPet() {
 
-        // get the database in write mode
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
-
         // create a new map of values for the "dummy" pet
         ContentValues petValues = new ContentValues();
         petValues.put(PetEntry.COLUMN_PET_NAME, "Toto");
@@ -127,10 +125,11 @@ public class CatalogActivity extends AppCompatActivity {
         petValues.put(PetEntry.COLUMN_PET_GENDER, PetEntry.GENDER_MALE);
         petValues.put(PetEntry.COLUMN_PET_WEIGHT, 7);
 
-        // insert the new row and store its row id
-        long newRowId = db.insert(PetEntry.TABLE_NAME, null, petValues);
+        // insert the new row using the content resolver
+        getContentResolver().insert(PetEntry.CONTENT_URI, petValues);
 
-        Log.v("CatalogActivity", "New Row Created. ID: " + newRowId);
+        // show a Toast message to confirm for the user that a pet was created
+        Toast.makeText(this, getString(R.string.insert_pet_success), Toast.LENGTH_SHORT).show();
     }
 
     @Override
