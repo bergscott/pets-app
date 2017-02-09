@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -71,46 +72,15 @@ public class CatalogActivity extends AppCompatActivity {
         Cursor cursor = getContentResolver().query(PetEntry.CONTENT_URI, projection,
                 null, null, null);
 
-        try {
-            // Display the number of rows in the Cursor (which reflects the number of rows in the
-            // pets table in the database).
-            TextView displayView = (TextView) findViewById(R.id.text_view_pet);
-            displayView.setText("The pets table contains " + cursor.getCount() + " pets.\n\n");
+        // Get the list view from the xml layout
+        ListView listView = (ListView) findViewById(R.id.list_view_pet);
 
-            displayView.append(
-                    PetEntry._ID
-                    + " - " + PetEntry.COLUMN_PET_NAME
-                    + " - " + PetEntry.COLUMN_PET_BREED
-                    + " - " + PetEntry.COLUMN_PET_GENDER
-                    + " - " + PetEntry.COLUMN_PET_WEIGHT + "\n");
+        // Create a new PetCursorAdapter using the cursor retrieved above
+        PetCursorAdapter mPetCursorAdapter = new PetCursorAdapter(this, cursor);
 
-            // Display each pet in the cursor
-            // first get the column indexes for each pet attribute
-            int idColumnIndex = cursor.getColumnIndex(PetEntry._ID);
-            int nameColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME);
-            int breedColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_BREED);
-            int genderColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_GENDER);
-            int weightColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_WEIGHT);
+        // Set the adapter to the list view
+        listView.setAdapter(mPetCursorAdapter);
 
-            // loop through each row in the cursor and append the pet to the Text View
-            while (cursor.moveToNext()) {
-                // collect the attributes of the current pet
-                int petId = cursor.getInt(idColumnIndex);
-                String petName = cursor.getString(nameColumnIndex);
-                String petBreed = cursor.getString(breedColumnIndex);
-                int petGender = cursor.getInt(genderColumnIndex);
-                int petWeight = cursor.getInt(weightColumnIndex);
-
-                // append the current pet's attributes to the TextView
-                displayView.append("\n" + petId + " - " + petName + " - " + petBreed + " - "
-                        + petGender + " - " + petWeight);
-            }
-
-        } finally {
-            // Always close the cursor when you're done reading from it. This releases all its
-            // resources and makes it invalid.
-            cursor.close();
-        }
     }
 
     /**
