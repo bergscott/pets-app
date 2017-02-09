@@ -14,6 +14,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,7 +27,8 @@ import com.example.android.pets.data.PetDbHelper;
  */
 public class CatalogActivity extends AppCompatActivity {
 
-    PetDbHelper mDbHelper;
+    /** List View containing pets in the database */
+    ListView mPetListView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,9 +45,10 @@ public class CatalogActivity extends AppCompatActivity {
             }
         });
 
-        // To access our database, we instantiate our subclass of SQLiteOpenHelper
-        // and pass the context, which is the current activity.
-        mDbHelper = new PetDbHelper(this);
+        // find the list view and set it's empty state view
+        mPetListView = (ListView) findViewById(R.id.list_view_pet);
+        View emptyView = findViewById(R.id.empty_view);
+        mPetListView.setEmptyView(emptyView);
 
         displayDatabaseInfo();
     }
@@ -72,14 +75,11 @@ public class CatalogActivity extends AppCompatActivity {
         Cursor cursor = getContentResolver().query(PetEntry.CONTENT_URI, projection,
                 null, null, null);
 
-        // Get the list view from the xml layout
-        ListView listView = (ListView) findViewById(R.id.list_view_pet);
-
         // Create a new PetCursorAdapter using the cursor retrieved above
         PetCursorAdapter mPetCursorAdapter = new PetCursorAdapter(this, cursor);
 
-        // Set the adapter to the list view
-        listView.setAdapter(mPetCursorAdapter);
+        // Set the adapter to the pet list view
+        mPetListView.setAdapter(mPetCursorAdapter);
 
     }
 
