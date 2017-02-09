@@ -12,6 +12,7 @@ import android.util.Log;
 import com.example.android.pets.data.PetContract.PetEntry;
 
 import static android.R.attr.name;
+import static android.provider.CalendarContract.CalendarCache.URI;
 
 /**
  * {@link ContentProvider} for Pets app.
@@ -248,6 +249,14 @@ public class PetProvider extends ContentProvider {
      */
     @Override
     public String getType(Uri uri) {
-        return null;
+        final int match = sUriMatcher.match(uri);
+        switch (match) {
+            case PETS:
+                return PetEntry.CONTENT_LIST_TYPE;
+            case PET_ID:
+                return PetEntry.CONTENT_ITEM_TYPE;
+            default:
+                throw new IllegalStateException("Unknown URI " + uri + " with match " + match);
+        }
     }
 }
