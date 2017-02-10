@@ -150,8 +150,8 @@ public class EditorActivity extends AppCompatActivity
         String weightString = mWeightEditText.getText().toString().trim();
         int weight = 0;
 
-        // if no values were entered, assuming user accidentally hit save and return early without
-        // saving
+        // if no values were entered, assume user accidentally hit save and return early without
+        // saving a new Pet
         if (TextUtils.isEmpty(nameString) && TextUtils.isEmpty(breedString)
                 && TextUtils.isEmpty(weightString) && mGender == GENDER_UNKNOWN) {
             // return early and notify the user that no pet was created
