@@ -69,6 +69,21 @@
     the database -->
     <string name="insert_pet_error">Error with saving pet</string>
 
+    <!-- Text for toast message indicating a pet was successfully updated in the db -->
+    <string name="edit_pet_success">Pet updated!</string>
+
+    <!-- Text for toast message indicating an error occured when attempting to update a pet in the
+     database -->
+    <string name="edit_pet_error">Error with updating pet</string>
+
+    <!-- Text for toast message indicating that no pet was created because no values were entered
+    into the edit fields -->
+    <string name="editor_no_pet_created">No Pet Created</string>
+
+    <!-- Text for toast message indicating that an invalid weight was entered and the default is
+    being used in its place -->
+    <string name="invalid_weight_message">Invalid weight entered. Using default of 0kg.</string>
+
     <!-- Title text for the empty view, which describes the empty dog house image [CHAR LIMIT=50] -->
     <string name="empty_view_title_text">It\'s a bit lonely here&#8230;</string>
 
