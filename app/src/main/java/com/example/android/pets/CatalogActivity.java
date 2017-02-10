@@ -3,6 +3,7 @@ package com.example.android.pets;
 import android.app.LoaderManager;
 import android.content.ContentProvider;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.CursorLoader;
 import android.content.Intent;
@@ -17,6 +18,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -64,6 +66,17 @@ public class CatalogActivity extends AppCompatActivity
         // setup the cursor adapter and set it to the list view
         mPetCursorAdapter = new PetCursorAdapter(this, null);
         mPetListView.setAdapter(mPetCursorAdapter);
+
+        // set the onItemClickListener for the list view to launch the editor activity to edit the
+        // clicked item
+        mPetListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                Intent intent = new Intent(CatalogActivity.this, EditorActivity.class);
+                intent.setData(ContentUris.withAppendedId(PetEntry.CONTENT_URI, id));
+                startActivity(intent);
+            }
+        });
 
         // initialize the cursor loader for pet data
         getLoaderManager().initLoader(PET_LOADER, null, this);
