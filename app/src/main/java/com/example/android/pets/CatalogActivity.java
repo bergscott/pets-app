@@ -1,11 +1,15 @@
 package com.example.android.pets;
 
+import android.app.LoaderManager;
 import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -25,10 +29,17 @@ import com.example.android.pets.data.PetDbHelper;
 /**
  * Displays list of pets that were entered and stored in the app.
  */
-public class CatalogActivity extends AppCompatActivity {
+public class CatalogActivity extends AppCompatActivity
+        implements LoaderManager.LoaderCallbacks<Cursor> {
 
     /** List View containing pets in the database */
     ListView mPetListView;
+
+    /** Cursor Adapter for Pet Information from Database */
+    PetCursorAdapter mPetCursorAdapter;
+
+    /** Pet Cursor Loader ID */
+    private static final int PET_LOADER = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,38 +61,18 @@ public class CatalogActivity extends AppCompatActivity {
         View emptyView = findViewById(R.id.empty_view);
         mPetListView.setEmptyView(emptyView);
 
-        displayDatabaseInfo();
+        // setup the cursor adapter and set it to the list view
+        mPetCursorAdapter = new PetCursorAdapter(this, null);
+        mPetListView.setAdapter(mPetCursorAdapter);
+
+        // initialize the cursor loader for pet data
+        getLoaderManager().initLoader(PET_LOADER, null, this);
     }
 
     /**
      * Temporary helper method to display information in the onscreen TextView about the state of
      * the pets database.
      */
-    private void displayDatabaseInfo() {
-
-        // Perform this SQL query "SELECT * FROM pets"
-        // to get a Cursor that contains all rows from the pets table.
-
-        // Setup the projection for the query
-        String[] projection = {
-                PetEntry._ID,
-                PetEntry.COLUMN_PET_NAME,
-                PetEntry.COLUMN_PET_BREED,
-                PetEntry.COLUMN_PET_GENDER,
-                PetEntry.COLUMN_PET_WEIGHT
-        };
-
-        // use the content resolver to query the database for all pets
-        Cursor cursor = getContentResolver().query(PetEntry.CONTENT_URI, projection,
-                null, null, null);
-
-        // Create a new PetCursorAdapter using the cursor retrieved above
-        PetCursorAdapter mPetCursorAdapter = new PetCursorAdapter(this, cursor);
-
-        // Set the adapter to the pet list view
-        mPetListView.setAdapter(mPetCursorAdapter);
-
-    }
 
     /**
      * Insert a dummy pet, "Toto" into the db
@@ -103,12 +94,6 @@ public class CatalogActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        displayDatabaseInfo();
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu options from the res/menu/menu_catalog.xml file.
         // This adds menu items to the app bar.
@@ -123,7 +108,6 @@ public class CatalogActivity extends AppCompatActivity {
             // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_insert_dummy_data:
                 insertPet();
-                displayDatabaseInfo();
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
@@ -131,5 +115,30 @@ public class CatalogActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        // get the URI for the pets table in the database
+        Uri uri = PetEntry.CONTENT_URI;
+
+        // setup the projection retrieving only the ID, Name, and Breed of the pets
+        String[] projection = { PetEntry._ID, PetEntry.COLUMN_PET_NAME, PetEntry.COLUMN_PET_BREED };
+
+        // return the new cursor loader
+        return new CursorLoader(this, uri, projection, null, null, null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        // swap the adapter's cursor to the newly loaded cursor
+        mPetCursorAdapter.swapCursor(cursor);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        // adapter's data needs to be cleared, so swap in null and drop all references to the
+        // previous cursor to prevent memory leaks
+        mPetCursorAdapter.swapCursor(null);
     }
 }
