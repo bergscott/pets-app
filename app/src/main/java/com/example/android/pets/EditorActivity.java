@@ -23,7 +23,9 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.NavUtils;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -104,6 +106,9 @@ public class EditorActivity extends AppCompatActivity
         // title to Add a Pet
         if (mCurrentPetUri == null) {
             setTitle(R.string.editor_activity_title_new_pet);
+            // invalidate the options menu since it doesn't make sence to have an option to delete
+            // the pet when we are creating a new one
+            invalidateOptionsMenu();
         } else {
             // there was a uri passed in with the intent, so we are editing a pet. Set the title to
             // Edit Pet
@@ -228,6 +233,18 @@ public class EditorActivity extends AppCompatActivity
         // Inflate the menu options from the res/menu/menu_editor.xml file.
         // This adds menu items to the app bar.
         getMenuInflater().inflate(R.menu.menu_editor, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+
+        // if this is a new pet, hide the delete option
+        if (mCurrentPetUri == null) {
+            MenuItem menuItem = menu.findItem(R.id.action_delete);
+            menuItem.setVisible(false);
+        }
         return true;
     }
 
