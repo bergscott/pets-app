@@ -55,16 +55,24 @@ import static com.example.android.pets.data.PetContract.PetEntry.GENDER_UNKNOWN;
 public class EditorActivity extends AppCompatActivity
         implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    /** EditText field to enter the pet's name */
+    /**
+     * EditText field to enter the pet's name
+     */
     private EditText mNameEditText;
 
-    /** EditText field to enter the pet's breed */
+    /**
+     * EditText field to enter the pet's breed
+     */
     private EditText mBreedEditText;
 
-    /** EditText field to enter the pet's weight */
+    /**
+     * EditText field to enter the pet's weight
+     */
     private EditText mWeightEditText;
 
-    /** EditText field to enter the pet's gender */
+    /**
+     * EditText field to enter the pet's gender
+     */
     private Spinner mGenderSpinner;
 
     /**
@@ -79,13 +87,19 @@ public class EditorActivity extends AppCompatActivity
      */
     private Uri mCurrentPetUri;
 
-    /** ID of Cursor Loader */
+    /**
+     * ID of Cursor Loader
+     */
     private int PET_LOADER = 0;
 
-    /** Whether or not the user has made changes to any of the edit fields */
+    /**
+     * Whether or not the user has made changes to any of the edit fields
+     */
     private boolean mPetHasChanged = false;
 
-    /** Listener to apply to edit fields to detect if the user has changed any pet attributes */
+    /**
+     * Listener to apply to edit fields to detect if the user has changed any pet attributes
+     */
     private View.OnTouchListener mTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -261,7 +275,7 @@ public class EditorActivity extends AppCompatActivity
                 return true;
             // Respond to a click on the "Delete" menu option
             case R.id.action_delete:
-                // Do nothing for now
+                showDeleteConfirmationDialog();
                 return true;
             // Respond to a click on the "Up" arrow button in the app bar
             case android.R.id.home:
@@ -309,13 +323,19 @@ public class EditorActivity extends AppCompatActivity
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
 
-        // go to the first position of the cursor
-        cursor.moveToFirst();
-        // retrieve the pet attributes from the cursor and update the edit fields
-        mNameEditText.setText(cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME)));
-        mBreedEditText.setText(cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_BREED)));
-        mWeightEditText.setText(cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_WEIGHT)));
-        mGenderSpinner.setSelection(cursor.getInt(cursor.getColumnIndex(PetEntry.COLUMN_PET_GENDER)));
+        if (cursor.getCount() > 0) {
+            // go to the first position of the cursor
+            cursor.moveToFirst();
+            // retrieve the pet attributes from the cursor and update the edit fields
+            mNameEditText.setText(cursor.getString(cursor.getColumnIndex(
+                    PetEntry.COLUMN_PET_NAME)));
+            mBreedEditText.setText(cursor.getString(cursor.getColumnIndex(
+                    PetEntry.COLUMN_PET_BREED)));
+            mWeightEditText.setText(cursor.getString(cursor.getColumnIndex(
+                    PetEntry.COLUMN_PET_WEIGHT)));
+            mGenderSpinner.setSelection(cursor.getInt(cursor.getColumnIndex(
+                    PetEntry.COLUMN_PET_GENDER)));
+        }
 
     }
 
@@ -335,6 +355,7 @@ public class EditorActivity extends AppCompatActivity
         // If the pet hasn't changed, continue with handling back button press
         if (!mPetHasChanged) {
             super.onBackPressed();
+            return;
         }
 
         // Otherwise if there are unsaved changes, setup a dialog to warn the user.
@@ -350,6 +371,7 @@ public class EditorActivity extends AppCompatActivity
 
         // Show dialog that there are unsaved changes
         showUnsavedChangesDialog(discardButtonClickListener);
+
     }
 
     private void showUnsavedChangesDialog(
@@ -372,5 +394,53 @@ public class EditorActivity extends AppCompatActivity
         // Create and show the AlertDialog
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
+    }
+
+    private void showDeleteConfirmationDialog() {
+        // Create an AlertDialog.Builder and set the message, and click listeners
+        // for the postivie and negative buttons on the dialog.
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.delete_dialog_msg);
+        builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked the "Delete" button, so delete the pet.
+                deletePet();
+            }
+        });
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked the "Cancel" button, so dismiss the dialog
+                // and continue editing the pet.
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
+            }
+        });
+
+        // Create and show the AlertDialog
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
+    /**
+     * Perform the deletion of the pet in the database.
+     */
+    private void deletePet() {
+        // if we are editing a new pet, return early and do nothing
+        if (mCurrentPetUri == null) {
+            return;
+        }
+        // delete the current pet
+        int deleteCount = getContentResolver().delete(mCurrentPetUri, null, null);
+        // check to see if the deletion was successful and create a toast message
+        if (deleteCount == 0) {
+            Toast.makeText(this, getString(R.string.editor_delete_pet_failed),
+                    Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, getString(R.string.editor_delete_pet_successful),
+                    Toast.LENGTH_SHORT).show();
+        }
+        // close the activity
+        finish();
     }
 }
